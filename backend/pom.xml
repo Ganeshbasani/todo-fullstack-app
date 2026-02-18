@@ -1,0 +1,7 @@
+<!-- Placeholder: backend is implemented in FastAPI (Python), not Maven/Java. -->
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>placeholder</groupId>
+  <artifactId>fastapi-backend</artifactId>
+  <version>0.0.1</version>
+</project>
