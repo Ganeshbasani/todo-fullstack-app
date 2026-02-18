@@ -58,3 +58,6 @@ cd frontend
 yarn install
 yarn start
 ```
+
+<img width="1778" height="953" alt="image" src="https://github.com/user-attachments/assets/0af99805-b1db-4ac1-80ed-671dd95ed672" />
+
