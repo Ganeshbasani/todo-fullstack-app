@@ -59,6 +59,8 @@ yarn install
 yarn start
 ```
 
+##Screenshots of the App
+
 <img width="1778" height="953" alt="image" src="https://github.com/user-attachments/assets/0af99805-b1db-4ac1-80ed-671dd95ed672" />
 <img width="1906" height="987" alt="image" src="https://github.com/user-attachments/assets/e17d007b-84ad-4c3f-9cce-8bbb0406565a" />
 
