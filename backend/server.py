@@ -15,7 +15,7 @@ from pymongo.errors import PyMongoError
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
-# MongoDB connection
+# This is MongoDB connection
 mongo_url = os.environ["MONGO_URL"]
 client = AsyncIOMotorClient(
     mongo_url,
@@ -25,14 +25,14 @@ client = AsyncIOMotorClient(
 )
 db = client[os.environ["DB_NAME"]]
 
-# Create the main app without a prefix
+
 app = FastAPI()
 
-# Create a router with the /api prefix
+# Creating a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
 
-# Define Todo Models
+# Define the Todo Models
 class TodoBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200, description="Title is mandatory")
     description: Optional[str] = Field(None, max_length=1000)
@@ -82,7 +82,7 @@ async def create_todo(todo_input: TodoCreate):
     todo_dict = todo_input.model_dump()
     todo_obj = Todo(**todo_dict)
 
-    # Convert to dict and serialize datetime to ISO string for MongoDB
+    
     doc = todo_obj.model_dump()
     doc["createdAt"] = doc["createdAt"].isoformat()
 
@@ -105,7 +105,7 @@ async def get_todos(completed: Optional[bool] = None):
         query["completed"] = completed
 
     try:
-        # Exclude MongoDB's _id field from the query results
+        
         todos = await db.todos.find(query, {"_id": 0}).to_list(1000)
     except PyMongoError:
         logger.warning("MongoDB unavailable during list; using in-memory fallback")
@@ -113,12 +113,11 @@ async def get_todos(completed: Optional[bool] = None):
         if completed is not None:
             todos = [todo for todo in todos if todo.get("completed") == completed]
 
-    # Convert ISO string timestamps back to datetime objects
+  
     for todo in todos:
         if isinstance(todo["createdAt"], str):
             todo["createdAt"] = datetime.fromisoformat(todo["createdAt"])
 
-    # Sort by createdAt descending (newest first)
     todos.sort(key=lambda x: x["createdAt"], reverse=True)
 
     return todos
@@ -136,7 +135,7 @@ async def get_todo(todo_id: str):
     if not todo:
         raise HTTPException(status_code=404, detail="Todo not found")
 
-    # Convert ISO string timestamp back to datetime object
+    #
     if isinstance(todo["createdAt"], str):
         todo["createdAt"] = datetime.fromisoformat(todo["createdAt"])
 
@@ -148,7 +147,7 @@ async def update_todo(todo_id: str, todo_update: TodoUpdate):
     """Update a todo (title, description, or completed status)."""
     use_memory_fallback = False
 
-    # Check if todo exists
+  
     try:
         existing_todo = await db.todos.find_one({"id": todo_id}, {"_id": 0})
     except PyMongoError:
@@ -159,7 +158,7 @@ async def update_todo(todo_id: str, todo_update: TodoUpdate):
     if not existing_todo:
         raise HTTPException(status_code=404, detail="Todo not found")
 
-    # Build update dict with only provided fields
+  
     update_data = todo_update.model_dump(exclude_unset=True)
 
     if not update_data:
@@ -169,7 +168,7 @@ async def update_todo(todo_id: str, todo_update: TodoUpdate):
         updated_todo = {**existing_todo, **update_data}
         memory_todos[todo_id] = updated_todo
     else:
-        # Update the todo
+        
         try:
             await db.todos.update_one(
                 {"id": todo_id},
@@ -180,7 +179,7 @@ async def update_todo(todo_id: str, todo_update: TodoUpdate):
             updated_todo = {**existing_todo, **update_data}
             memory_todos[todo_id] = updated_todo
         else:
-            # Fetch and return updated todo
+            # Fetch and return
             try:
                 updated_todo = await db.todos.find_one({"id": todo_id}, {"_id": 0})
             except PyMongoError:
@@ -188,7 +187,7 @@ async def update_todo(todo_id: str, todo_update: TodoUpdate):
                 updated_todo = {**existing_todo, **update_data}
                 memory_todos[todo_id] = updated_todo
 
-    # Convert ISO string timestamp back to datetime object
+    
     if isinstance(updated_todo["createdAt"], str):
         updated_todo["createdAt"] = datetime.fromisoformat(updated_todo["createdAt"])
 
@@ -213,7 +212,6 @@ async def delete_todo(todo_id: str):
     return None
 
 
-# Include the router in the main app
 app.include_router(api_router)
 
 app.add_middleware(
@@ -224,14 +222,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
-# In-memory fallback store used when MongoDB is unavailable.
+
 memory_todos = {}
 
 
